@@ -1,0 +1,16 @@
+---
+
+- module: 'system'
+  # Syslog
+  syslog:
+    enabled: true
+    prospector:
+      tags:
+        'syslog'
+
+  # Authorization logs
+  auth:
+    enabled: true
+    prospector:
+      tags:
+        'auth'

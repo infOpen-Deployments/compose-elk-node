@@ -1,0 +1,21 @@
+---
+
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+processors:
+- add_cloud_metadata:
+
+output.elasticsearch:
+  hosts: ['elasticsearch:9200']
+
+#======================== Kibana ========================
+
+setup.kibana:
+  host: 'kibana:5601'
+
+setup.dashboards.enabled: true
+setup.dashboards.retry.enabled: true
+setup.dashboards.retry.interval: "30s"
+setup.dashboards.retry.maximum: 5

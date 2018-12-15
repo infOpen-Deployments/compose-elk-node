@@ -1,0 +1,55 @@
+###########################
+#   FILEBEAT CONF
+###########################
+
+#================= Filebeat inputs ================
+
+filebeat.inputs:
+  - type: 'log'
+    enabled: true
+    paths:
+      - '/mnt/logs/*/*.log'
+    exclude_files:
+      - 'boot.log'
+      - 'lynis.log'
+    tags:
+      - 'system'
+  - type: 'log'
+    enabled: true
+    paths:
+      - '/mnt/logs/*/odoo/odoo.log'
+    tags:
+      -  'odoo'
+
+#================== Filebeat modules ===================
+
+filebeat.modules:
+
+#---------- Modules configuration ----------------------
+filebeat.config.modules:
+  path: '${path.config}/modules.d/*.yml'
+  reload.enabled: false
+
+#============ Elasticsearch template setting ============
+
+setup.template.settings:
+  index.number_of_shards: 3
+
+#======================== Kibana ========================
+
+setup.kibana:
+  host: 'kibana:5601'
+
+setup.dashboards.enabled: true
+setup.dashboards.retry.enabled: true
+setup.dashboards.retry.interval: "30s"
+setup.dashboards.retry.maximum: 5
+
+#=================== Logstash output ====================
+
+#output.logstash:
+#  hosts: ['logstash:6000']
+
+#=================== Elasticsearch output ====================
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]

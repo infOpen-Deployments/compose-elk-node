@@ -1,0 +1,13 @@
+---
+
+- type: 'log'
+  enabled: true
+  paths:
+    - '/var/log/kern.log'
+  tags: ["kern"]
+
+- type: 'log'
+  enabled: true
+  paths:
+    - '/var/log/daemon.log'
+  tags: ["daemon"]

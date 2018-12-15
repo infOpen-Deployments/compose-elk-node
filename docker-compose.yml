@@ -1,0 +1,120 @@
+---
+
+version: '3'
+
+networks:
+  elk_node: {}
+  services:
+    external:
+      name: 'services'
+
+services:
+
+  filebeat:
+    build:
+      context: './filebeat'
+      args:
+        ELK_VERSION: $ELK_VERSION
+    restart: 'unless-stopped'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '5'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+    networks:
+      - 'elk_node'
+      - 'services'
+    volumes:
+      - '/var/log:/mnt/logs/physical-host:ro'
+
+  metricbeat:
+    build:
+      context: './metricbeat'
+      args:
+        ELK_VERSION: $ELK_VERSION
+    restart: 'unless-stopped'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '5'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+    networks:
+      - 'elk_node'
+      - 'services'
+    volumes:
+      - '/proc:/hostfs/proc:ro'
+      - '/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro'
+      - '/:/hostfs:ro'
+
+  packetbeat:
+    build:
+      context: './packetbeat'
+      args:
+        ELK_VERSION: $ELK_VERSION
+    restart: 'unless-stopped'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '5'
+    cap_add:
+      - 'NET_ADMIN'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+    network_mode: 'host'
+
+  auditbeat:
+    build:
+      context: './auditbeat'
+      args:
+        ELK_VERSION: $ELK_VERSION
+    restart: 'unless-stopped'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '5'
+    pid: 'host'
+    cap_add:
+      - 'AUDIT_CONTROL'
+      - 'AUDIT_READ'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+    networks:
+      - 'elk_node'
+      - 'services'
+
+  logstash:
+    build:
+      context: './logstash/'
+      args:
+        ELK_VERSION: $ELK_VERSION
+    restart: 'unless-stopped'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '5'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+      - "logstash-core:${ELK_CORE_LOGSTASH_ADDRESS}"
+    volumes:
+      - './logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro'
+      - './logstash/pipeline:/usr/share/logstash/pipeline:ro'
+    ports:
+      - '7000:5000'
+      - '8000:5000'
+    networks:
+      - 'elk_node'
+      - 'services'
+    environment:
+      LS_JAVA_OPTS: '-Xmx1024m -Xms1024m'
