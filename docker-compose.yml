@@ -19,8 +19,8 @@ services:
     logging:
       driver: 'json-file'
       options:
-        max-size: '100m'
-        max-file: '5'
+        max-size: "${LOGGING_MAX_SIZE}"
+        max-file: "${LOGGING_MAX_FILE}"
     extra_hosts:
       - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
       - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
@@ -39,8 +39,8 @@ services:
     logging:
       driver: 'json-file'
       options:
-        max-size: '100m'
-        max-file: '5'
+        max-size: "${LOGGING_MAX_SIZE}"
+        max-file: "${LOGGING_MAX_FILE}"
     extra_hosts:
       - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
       - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
@@ -61,8 +61,8 @@ services:
     logging:
       driver: 'json-file'
       options:
-        max-size: '100m'
-        max-file: '5'
+        max-size: "${LOGGING_MAX_SIZE}"
+        max-file: "${LOGGING_MAX_FILE}"
     cap_add:
       - 'NET_ADMIN'
     extra_hosts:
@@ -79,8 +79,8 @@ services:
     logging:
       driver: 'json-file'
       options:
-        max-size: '100m'
-        max-file: '5'
+        max-size: "${LOGGING_MAX_SIZE}"
+        max-file: "${LOGGING_MAX_FILE}"
     pid: 'host'
     cap_add:
       - 'AUDIT_CONTROL'
@@ -101,8 +101,8 @@ services:
     logging:
       driver: 'json-file'
       options:
-        max-size: '100m'
-        max-file: '5'
+        max-size: "${LOGGING_MAX_SIZE}"
+        max-file: "${LOGGING_MAX_FILE}"
     extra_hosts:
       - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
       - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
