@@ -1,0 +1,6 @@
+---
+
+- module: 'postgresql'
+  log:
+    enabled: true
+    var.paths: []

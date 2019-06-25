@@ -1,43 +1,51 @@
 ---
 
-packetbeat.interfaces.device: any
+packetbeat.interfaces.device: 'any'
+packetbeat.interfaces.type: 'af_packet'
+packetbeat.interfaces.snaplen: 262140
+packetbeat.interfaces.buffer_size_mb: 1024
 
 packetbeat.flows:
-  timeout: 30s
-  period: 10s
+  timeout: '30s'
+  period: '10s'
 
-packetbeat.protocols.dns:
-  ports: [53]
-  include_authorities: true
-  include_additionals: true
-
-packetbeat.protocols.http:
-  ports: [80, 5601, 9200, 8080, 8081, 5000, 8002]
-
-packetbeat.protocols.memcache:
-  ports: [11211]
-
-packetbeat.protocols.mysql:
-  ports: [3306]
-
-packetbeat.protocols.pgsql:
-  ports: [5432]
-
-packetbeat.protocols.redis:
-  ports: [6379]
-
-packetbeat.protocols.thrift:
-  ports: [9090]
-
-packetbeat.protocols.mongodb:
-  ports: [27017]
-
-packetbeat.protocols.cassandra:
-  ports: [9042]
-
+packetbeat.protocols:
+  - type: 'amqp'
+    enabled: true
+    ports: [5672]
+  - type: 'cassandra'
+    ports: [9042]
+  - type: 'dhcpv4'
+    ports: [67, 68]
+  - type: 'dns'
+    enabled: true
+    ports: [53]
+    include_authorities: true
+    include_additionals: true
+  - type: 'http'
+    enabled: true
+    ports: [80, 5601, 9200, 8080, 8081, 5000, 8002]
+  - type: 'icmp'
+    enabled: true
+  - type: 'memcache'
+    ports: [11211]
+  - type: 'mongodb'
+    ports: [27017]
+  - type: 'mysql'
+    ports: [3306]
+  - type: 'pgsql'
+    ports: [5432]
+  - type: 'redis'
+    ports: [6379]
+  - type: 'thrift'
+    ports: [9090]
+  - type: 'tls'
+    ports: [8443, 443]
 
 processors:
-- add_cloud_metadata:
+  - add_cloud_metadata: ~
+  - add_docker_metadata:
+      host: 'unix:///var/run/docker.sock'
 
 output.elasticsearch:
   hosts: ['elasticsearch:9200']

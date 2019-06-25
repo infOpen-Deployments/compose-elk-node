@@ -2,24 +2,49 @@
 #   FILEBEAT CONF
 ###########################
 
+#================= Filebeat general ===============
+
+logging.level: 'debug'
+
 #================= Filebeat inputs ================
 
 filebeat.inputs:
   - type: 'log'
     enabled: true
     paths:
-      - '/mnt/logs/*/*.log'
+      - '/mnt/logs/physical-host/**/*.log'
     exclude_files:
       - 'boot.log'
       - 'lynis.log'
     tags:
       - 'system'
-  - type: 'log'
+
+  - type: 'docker'
     enabled: true
-    paths:
-      - '/mnt/logs/*/odoo/odoo.log'
+    combine_partial: true
+    containers:
+      path: '/mnt/logs/docker'
+      stream: 'stdout'
+      ids: ['*']
+    cri.parse_flags: true
+    exclude_files: ['\.gz$']
+    ignore_older: '10m'
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.ignore_decoding_error: true
+    processors:
+      - add_docker_metadata:
+          host: 'unix:///var/run/docker.sock'
+          match_source_index: 3
     tags:
-      -  'odoo'
+      - 'docker'
+
+#================Filebeat autodiscover =================
+
+filebeat.autodiscover:
+  providers:
+    - type: 'docker'
+      hints.enabled: true
 
 #================== Filebeat modules ===================
 
@@ -29,6 +54,10 @@ filebeat.modules:
 filebeat.config.modules:
   path: '${path.config}/modules.d/*.yml'
   reload.enabled: false
+
+#---------- Processors configuration ----------------------
+processors:
+  - add_cloud_metadata: ~
 
 #============ Elasticsearch template setting ============
 

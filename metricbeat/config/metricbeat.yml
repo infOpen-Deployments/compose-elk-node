@@ -5,17 +5,85 @@ metricbeat.config.modules:
   reload.enabled: false
 
 processors:
-- add_cloud_metadata:
+- add_cloud_metadata: ~
+- add_docker_metadata: ~
+
+
+#============================== Autodiscover ===================================
+
+metricbeat.autodiscover:
+  providers:
+    - type: 'docker'
+
+#======================== Modules ========================
+metricbeat.modules:
+
+#------------------------------- System Module -------------------------------
+- module: 'system'
+  metricsets:
+    - 'cpu'
+    - 'load'
+    - 'memory'
+    - 'network'
+    - 'process'
+    - 'process_summary'
+    - 'uptime'
+    - 'socket_summary'
+    - 'core'
+    - 'diskio'
+    - 'filesystem'
+    - 'fsstat'
+    - 'raid'
+    - 'socket'
+  enabled: true
+  period: '10s'
+  processes: ['.*']
+  cpu.metrics:  ['percentages']
+  core.metrics: ['percentages']
+  process.include_top_n:
+    enabled: true
+    by_cpu: 0
+    by_memory: 0
+  process.cmdline.cache.enabled: true
+  process.cgroups.enabled: true
+  process.env.whitelist: []
+  process.include_cpu_ticks: false
+  socket.reverse_lookup.enabled: false
+  socket.reverse_lookup.success_ttl: '60s'
+  socket.reverse_lookup.failure_ttl: '60s'
+  diskio.include_devices: []
+
+#------------------------------- Docker Module -------------------------------
+- module: 'docker'
+  metricsets:
+    - 'container'
+    - 'cpu'
+    - 'diskio'
+    - 'event'
+    - 'healthcheck'
+    - 'info'
+    - 'image'
+    - 'memory'
+    - 'network'
+  hosts: ['unix:///var/run/docker.sock']
+  period: '10s'
+  enabled: true
+  labels.dedot: false
+  cpu.cores: true
+
+
+#======================== Output ========================
 
 output.elasticsearch:
   hosts: ['elasticsearch:9200']
 
 #======================== Kibana ========================
 
+
 setup.kibana:
   host: 'kibana:5601'
 
 setup.dashboards.enabled: true
 setup.dashboards.retry.enabled: true
-setup.dashboards.retry.interval: "30s"
+setup.dashboards.retry.interval: '30s'
 setup.dashboards.retry.maximum: 5

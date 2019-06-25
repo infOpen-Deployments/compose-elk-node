@@ -1,12 +1,14 @@
 ARG ELK_VERSION
 
-FROM docker.elastic.co/beats/filebeat:${ELK_VERSION}
+FROM docker.elastic.co/beats/filebeat-oss:${ELK_VERSION}
 
 USER root
-RUN groupadd -g 101 odoo-logs-1
-RUN groupadd -g 107 odoo-logs-2
-RUN usermod -a -G adm,odoo-logs-1,odoo-logs-2 filebeat
+
+# Modules
 COPY ./config/filebeat.yml /usr/share/filebeat/filebeat.yml
+COPY ./config/modules.d/auditd.yml /usr/share/filebeat/modules.d/auditd.yml
+#COPY ./config/modules.d/iptables.yml /usr/share/filebeat/modules.d/iptables.yml
+COPY ./config/modules.d/postgresql.yml /usr/share/filebeat/modules.d/postgresql.yml
 COPY ./config/modules.d/system.yml /usr/share/filebeat/modules.d/system.yml
 
 USER filebeat
