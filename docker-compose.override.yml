@@ -1,0 +1,18 @@
+---
+
+version: '3'
+
+services:
+  filebeat:
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+  metricbeat:
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+  logstash:
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
+      - "logstash-core:${ELK_CORE_LOGSTASH_ADDRESS}"

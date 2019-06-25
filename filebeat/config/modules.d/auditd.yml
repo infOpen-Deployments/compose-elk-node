@@ -1,0 +1,7 @@
+---
+
+- module: 'auditd'
+  log:
+    enabled: true
+    var.paths:
+      - '/mnt/logs/physical-host/audit/audit.log*'

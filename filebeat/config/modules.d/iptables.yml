@@ -1,0 +1,8 @@
+---
+
+- module: 'iptables'
+  log:
+    enabled: true
+    var.paths:
+      - '/mnt/logs/physical-host/iptables.log'
+    var.input: 'file'
