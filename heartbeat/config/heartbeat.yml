@@ -1,0 +1,33 @@
+---
+
+heartbeat.config.monitors:
+  path: '${path.config}/monitors.d/*.yml'
+  reload.enabled: false
+  reload.period: '5s'
+
+heartbeat.monitors:
+- type: 'http'
+  schedule: '@every 5s'
+  urls:
+    - 'http://elasticsearch:9200'
+    - 'http://kibana:5601'
+
+- type: 'icmp'
+  schedule: '@every 5s'
+  hosts:
+    - 'elasticsearch'
+    - 'kibana'
+
+processors:
+- add_cloud_metadata: ~
+
+output.elasticsearch:
+  hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
+
+setup.kibana:
+  host: 'kibana:5601'
+
+setup.dashboards.enabled: false
+setup.dashboards.retry.enabled: true
+setup.dashboards.retry.interval: '30s'
+setup.dashboards.retry.maximum: 5

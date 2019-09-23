@@ -1,50 +1,97 @@
 ---
 
-version: '3'
+version: '3.4'
+
+x-logging:
+  &default-logging
+  driver: 'json-file'
+  options:
+    max-size: "${LOGGING_MAX_SIZE}"
+    max-file: "${LOGGING_MAX_FILE}"
 
 networks:
-  elk_node: {}
-  services:
+  elk-node:
     external:
-      name: 'services'
+      name: 'elk-node'
 
 services:
+  auditbeat:
+    build:
+      context: './auditbeat'
+      args:
+        ELK_AUDITBEAT_IMAGE_NAME: "${ELK_AUDITBEAT_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
+    restart: 'unless-stopped'
+    user: 'root'
+    logging: *default-logging
+    pid: 'host'
+    privileged: true
+    cap_add:
+      - 'ALL'
+    network_mode: 'host'
+    extra_hosts:
+      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
+      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
 
   filebeat:
     build:
       context: './filebeat'
       args:
-        ELK_VERSION: $ELK_VERSION
+        ELK_FILEBEAT_IMAGE_NAME: "${ELK_FILEBEAT_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
     restart: 'unless-stopped'
     user: 'root'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: "${LOGGING_MAX_SIZE}"
-        max-file: "${LOGGING_MAX_FILE}"
+    logging: *default-logging
     networks:
-      - 'elk_node'
-      - 'services'
+      - 'elk-node'
     volumes:
       - '/var/log:/mnt/logs/physical-host:ro'
       - '/var/lib/docker/containers:/mnt/logs/docker:ro'
       - '/var/run/docker.sock:/var/run/docker.sock'
 
+  heartbeat:
+    build:
+      context: './heartbeat'
+      args:
+        ELK_HEARTBEAT_IMAGE_NAME: "${ELK_HEARTBEAT_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
+    restart: 'unless-stopped'
+    logging: *default-logging
+    networks:
+      - 'elk-node'
+    volumes:
+      - './heartbeat/config/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro'
+
+  logstash:
+    build:
+      context: './logstash/'
+      args:
+        ELK_LOGSTASH_IMAGE_NAME: "${ELK_LOGSTASH_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
+    restart: 'unless-stopped'
+    logging: *default-logging
+    volumes:
+      - './logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro'
+      - './logstash/pipeline:/usr/share/logstash/pipeline:ro'
+    ports:
+      - "${LISTEN_IP_ADDRESS}:7000:5000"
+      - "${LISTEN_IP_ADDRESS}:7500:6000"
+    networks:
+      - 'elk-node'
+    environment:
+      LS_JAVA_OPTS: "${LS_JAVA_OPTS}"
+
   metricbeat:
     build:
       context: './metricbeat'
       args:
-        ELK_VERSION: $ELK_VERSION
+        ELK_METRICBEAT_IMAGE_NAME: "${ELK_METRICBEAT_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
     restart: 'unless-stopped'
     user: 'root'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: "${LOGGING_MAX_SIZE}"
-        max-file: "${LOGGING_MAX_FILE}"
+    logging: *default-logging
     networks:
-      - 'elk_node'
-      - 'services'
+      - 'elk-node'
     volumes:
       - '/proc:/hostfs/proc:ro'
       - '/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro'
@@ -55,63 +102,16 @@ services:
     build:
       context: './packetbeat'
       args:
-        ELK_VERSION: $ELK_VERSION
+        ELK_PACKETBEAT_IMAGE_NAME: "${ELK_PACKETBEAT_IMAGE_NAME}"
+        ELK_VERSION: "${ELK_VERSION}"
     restart: 'unless-stopped'
     user: 'root'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: "${LOGGING_MAX_SIZE}"
-        max-file: "${LOGGING_MAX_FILE}"
+    logging: *default-logging
     cap_add:
       - 'NET_ADMIN'
     network_mode: 'host'
-    extra_hosts:
-      - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
-      - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
-
-  auditbeat:
-    build:
-      context: './auditbeat'
-      args:
-        ELK_VERSION: $ELK_VERSION
-    restart: 'unless-stopped'
-    user: 'root'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: "${LOGGING_MAX_SIZE}"
-        max-file: "${LOGGING_MAX_FILE}"
-    pid: 'host'
-    privileged: true
-    cap_add:
-      - 'ALL'
-    network_mode: 'host'
     extra_hosts:
       - "elasticsearch:${ELK_CORE_ES_ADDRESS}"
       - "kibana:${ELK_CORE_KIBANA_ADDRESS}"
-
-  logstash:
-    build:
-      context: './logstash/'
-      args:
-        ELK_VERSION: $ELK_VERSION
-    restart: 'unless-stopped'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: "${LOGGING_MAX_SIZE}"
-        max-file: "${LOGGING_MAX_FILE}"
-    volumes:
-      - './logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro'
-      - './logstash/pipeline:/usr/share/logstash/pipeline:ro'
-    ports:
-      - "${LISTEN_IP_ADDRESS}:7000:5000"
-      - "${LISTEN_IP_ADDRESS}:8000:5000"
-    networks:
-      - 'elk_node'
-      - 'services'
-    environment:
-      LS_JAVA_OPTS: "${LS_JAVA_OPTS}"

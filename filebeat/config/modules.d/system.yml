@@ -4,13 +4,13 @@
   # Syslog
   syslog:
     enabled: true
-    prospector:
+    input:
       tags:
         'syslog'
 
   # Authorization logs
   auth:
     enabled: true
-    prospector:
+    input:
       tags:
         'auth'
